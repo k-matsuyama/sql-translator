@@ -849,12 +849,22 @@ sub alter_field
 sub add_field
 {
     my ($new_field, $options) = @_;
+    my $order;
+
+    if ($new_field->order == 1) {
+        $order = 'FIRST';
+    }
+    else {
+        my $name = $new_field->table->field_names->[$new_field->order - 2];
+        $order = sprintf("AFTER %s", _generator($options)->quote($name));
+    }
 
     my $table_name = _generator($options)->quote($new_field->table->name);
 
-    my $out = sprintf('ALTER TABLE %s ADD COLUMN %s',
+    my $out = sprintf('ALTER TABLE %s ADD COLUMN %s %s',
                       $table_name,
-                      create_field($new_field, $options));
+                      create_field($new_field, $options),
+                      $order);
 
     return $out;
 
